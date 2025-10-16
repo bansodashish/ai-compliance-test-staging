@@ -1,3 +1,4 @@
+```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -54,12 +55,12 @@ spec:
             port: 80
           initialDelaySeconds: 5
           periodSeconds: 5
-        securityContext: 
+        securityContext:
           runAsNonRoot: true
           runAsUser: 1000
           runAsGroup: 3000
           fsGroup: 3000
-          seccompProfile: 
+          seccompProfile:
             type: RuntimeDefault
       volumes:
       - name: html-storage
@@ -93,16 +94,17 @@ metadata:
     app: sample-app
     environment: staging
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/rewrite-target: '/'
 spec:
   rules:
   - host: sample-app-staging.example.com
     http:
       paths:
-      - path: /
+      - path: '/'
         pathType: Prefix
         backend:
           service:
             name: sample-app-service
             port:
               number: 80
+```
