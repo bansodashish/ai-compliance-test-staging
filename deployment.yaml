@@ -62,10 +62,15 @@ spec:
           fsGroup: 3000
           seccompProfile:
             type: RuntimeDefault
-      volumes:
-      - name: html-storage
-        emptyDir:
-          sizeLimit: 100Mi
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        volumes:
+        - name: html-storage
+          emptyDir:
+            sizeLimit: 100Mi
 ---
 apiVersion: v1
 kind: Service
