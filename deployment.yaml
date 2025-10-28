@@ -1,4 +1,4 @@
-```yaml
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -112,4 +112,3 @@ spec:
             name: sample-app-service
             port:
               number: 80
-```
