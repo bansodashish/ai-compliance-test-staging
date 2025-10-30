@@ -1,0 +1,113 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sample-app-staging
+  namespace: staging
+  labels:
+    app: sample-app
+    environment: staging
+    version: v1.0.0
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: sample-app
+      environment: staging
+  template:
+    metadata:
+      labels:
+        app: sample-app
+        environment: staging
+        version: v1.0.0
+    spec:
+      containers:
+      - name: sample-app
+        image: nginx:1.21-alpine
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+          name: http
+        env:
+        - name: ENVIRONMENT
+          value: "staging"
+        - name: LOG_LEVEL
+          value: "debug"
+        volumeMounts:
+        - mountPath: "/usr/share/nginx/html"
+          name: html-storage
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 3000
+          fsGroup: 3000
+          seccompProfile:
+            type: RuntimeDefault
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        volumes:
+        - name: html-storage
+          emptyDir:
+            sizeLimit: 100Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sample-app-service
+  namespace: staging
+  labels:
+    app: sample-app
+    environment: staging
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 80
+    name: http
+  selector:
+    app: sample-app
+    environment: staging
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sample-app-ingress
+  namespace: staging
+  labels:
+    app: sample-app
+    environment: staging
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: '/'
+spec:
+  rules:
+  - host: sample-app-staging.example.com
+    http:
+      paths:
+      - path: '/'
+        pathType: Prefix
+        backend:
+          service:
+            name: sample-app-service
+            port:
+              number: 80
